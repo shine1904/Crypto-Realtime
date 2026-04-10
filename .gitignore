@@ -1,0 +1,89 @@
+# Global .gitignore file - This file consolidates all gitignore rules from the entire project
+
+# ============================================================================
+# FRONTEND SCOPE (frontend/)
+# ============================================================================
+# Dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.next/
+
+# ============================================================================
+# BACKEND SCOPE (backend/)
+# ============================================================================
+
+## General Dependencies
+backend/node_modules/
+
+## Environment Files (backend/)
+# Ignore environment configuration files containing sensitive data
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/vendor/
+backend/public/storage
+backend/*.key
+
+## Bootstrap Cache (backend/bootstrap/cache/)
+# Ignore all files in bootstrap cache directory
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitkeep
+
+## Storage Logs (backend/storage/logs/)
+# Ignore all log files
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+
+## Storage App (backend/storage/app/)
+# Ignore all stored application files
+backend/storage/app/*
+!backend/storage/app/.gitkeep
+
+## Storage App Public (backend/storage/app/public/)
+# Ignore all public storage files
+backend/storage/app/public/*
+!backend/storage/app/public/.gitkeep
+
+## Storage Framework - General (backend/storage/framework/)
+# Compiled PHP files
+backend/storage/framework/compiled.php
+
+## Storage Framework Cache (backend/storage/framework/cache/)
+# Ignore cache files
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitkeep
+
+## Storage Framework Cache Data (backend/storage/framework/cache/data/)
+# Ignore cache data files
+backend/storage/framework/cache/data/*
+!backend/storage/framework/cache/data/.gitkeep
+
+## Storage Framework Sessions (backend/storage/framework/sessions/)
+# Ignore session files
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitkeep
+
+## Storage Framework Testing (backend/storage/framework/testing/)
+# Ignore testing files
+backend/storage/framework/testing/*
+!backend/storage/framework/testing/.gitkeep
+
+## Storage Framework Views (backend/storage/framework/views/)
+# Ignore all view files
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitkeep
+
+## Database (backend/database/)
+# Ignore SQLite database files
+backend/database/*.sqlite*
+/docker/postgres/data/
+.vscode/
+.DS_Store
+skills
+
+# ============================================================================
+# END OF GITIGNORE
+# ============================================================================

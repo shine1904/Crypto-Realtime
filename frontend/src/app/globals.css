@@ -1,0 +1,35 @@
+/* 1. Import Tailwind v4 chính thống */
+@import "tailwindcss";
+
+/* 2. Định nghĩa Theme trực tiếp trong CSS (Cách làm mới của v4) */
+@theme {
+  --color-binance-black: #0B0E11;
+  --color-binance-yellow: #F0B90B;
+  --color-binance-gray: #1E2329;
+  --color-binance-green: #0ECB81;
+  --color-binance-red: #F6465D;
+  
+  --font-inter: var(--font-inter); /* Kết nối với font từ layout.tsx */
+}
+
+/* 3. Reset & Base Styles */
+@layer base {
+  body {
+    background-color: var(--color-binance-black);
+    color: #EAECEF;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* 4. Custom Components sử dụng @apply */
+@layer components {
+  .btn-primary {
+    /* Trong v4, hãy đảm bảo class này tồn tại hoặc dùng giá trị hex trực tiếp nếu lỗi */
+    @apply bg-[--color-binance-yellow] text-black font-semibold py-2 px-4 rounded transition-colors;
+  }
+  
+  .card-dark {
+    @apply bg-[--color-binance-gray] border border-[#2B3139] rounded-xl p-4;
+  }
+}

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#59f8a9",
+                        "secondary-fixed": "#dde3ed",
+                        "secondary-fixed-dim": "#c1c7d1",
+                        "surface-container-high": "#272a2e",
+                        "surface-container-highest": "#323538",
+                        "inverse-surface": "#e1e2e7",
+                        "inverse-primary": "#775a00",
+                        "on-tertiary": "#003920",
+                        "on-primary": "#3f2e00",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#111417",
+                        "primary-container": "#f0b90b",
+                        "surface-variant": "#323538",
+                        "primary": "#ffd87f",
+                        "primary-fixed-dim": "#f6be16",
+                        "on-surface": "#e1e2e7",
+                        "surface-container-lowest": "#0b0e11",
+                        "tertiary-container": "#32db8f",
+                        "surface-bright": "#37393d",
+                        "on-primary-fixed-variant": "#5a4300",
+                        "secondary-container": "#414750",
+                        "tertiary-fixed": "#60feae",
+                        "outline-variant": "#4f4633",
+                        "on-background": "#e1e2e7",
+                        "on-secondary-fixed": "#161c24",
+                        "on-primary-container": "#644b00",
+                        "on-error": "#690005",
+                        "secondary": "#c1c7d1",
+                        "primary-fixed": "#ffdf99",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#f6be16",
+                        "outline": "#9b8f79",
+                        "on-secondary-fixed-variant": "#414750",
+                        "on-secondary-container": "#b0b5c0",
+                        "background": "#111417",
+                        "surface-container": "#1d2023",
+                        "on-surface-variant": "#d3c5ac",
+                        "tertiary-fixed-dim": "#3be194",
+                        "on-tertiary-fixed": "#002111",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#191c1f",
+                        "on-tertiary-container": "#005b37",
+                        "on-secondary": "#2b3139",
+                        "on-primary-fixed": "#251a00",
+                        "inverse-on-surface": "#2e3134",
+                        "surface": "#111417",
+                        "on-tertiary-fixed-variant": "#005231"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#111417] flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#F0B90B] cursor-pointer">menu</span>
+<span class="text-xl font-black tracking-tighter text-[#F0B90B] font-['Inter'] tracking-tight">VAULT_TRADE</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-8 text-[#d3c5ac] font-medium">
+<a class="hover:text-[#F0B90B] transition-colors" href="#">Markets</a>
+<a class="hover:text-[#F0B90B] transition-colors" href="#">Trade</a>
+<a class="hover:text-[#F0B90B] transition-colors" href="#">Wallet</a>
+<a class="text-[#F0B90B] font-bold transition-colors" href="#">Profile</a>
+</div>
+<button class="text-[#F0B90B] font-['Inter'] tracking-tight font-bold hover:bg-[#272a2e] px-4 py-2 transition-colors duration-300 active:scale-95 transition-transform">LOGIN</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter text-on-surface mb-2">Profile Settings</h1>
+<p class="text-on-surface-variant font-medium">Manage your kinetic vault identity and security protocols.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Sidebar: Profile Picture (Asymmetric Layout) -->
+<aside class="lg:col-span-4 space-y-6">
+<div class="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
+<!-- Subtle Glow Texture -->
+<div class="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="relative flex flex-col items-center text-center">
+<div class="relative mb-6">
+<div class="w-32 h-32 rounded-xl overflow-hidden border-2 border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a professional man in a dark studio setting with dramatic warm side lighting and high contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZRecWtDrknVA9ZpKvUnk3k5KzgSYyoFDWiYyDgqECznZX74NhDsJUmqPOg7IQV-x05L8woCwtFmZIBJf8_HkUQSc1_mEgGVF5b7w4m_C1XW6s57Ra55mFZan2FR5A_EYOSX1AoMbCEiUpENCA4JZAUfHxeU0dn_pUw_QNeD9HSK6gZT2JLidYk4AUz_7vTRWWZNGnXlAbgig7DYJomdF_6X3c3pXXbcPj1sDm-JmKxbRctVhTPCHQ0AzKzQ8BXqs8q8Z7jKl3d4Xs"/>
+</div>
+<button class="absolute -bottom-2 -right-2 bg-primary-container text-on-primary-container p-2 rounded-lg shadow-lg hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<h2 class="text-xl font-bold text-on-surface">Alex Thompson</h2>
+<p class="text-label-md text-secondary-fixed-dim mt-1">Foundry Member since 2022</p>
+<div class="mt-8 w-full space-y-4">
+<div class="flex justify-between items-center p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/10">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Account Status</span>
+<span class="text-xs font-bold text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                    VERIFIED
+                                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Quick Glance -->
+<div class="bg-surface-container-highest/80 backdrop-blur-xl p-6 rounded-xl border border-outline-variant/15">
+<h3 class="text-sm font-bold text-on-surface-variant mb-4 uppercase tracking-widest">Security Health</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm text-secondary">2FA Status</span>
+<div class="w-10 h-5 bg-tertiary/20 rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-tertiary rounded-full shadow-[0_0_8px_rgba(89,248,169,0.5)]"></div>
+</div>
+</div>
+<div class="h-1 bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-tertiary to-primary w-4/5"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant">Your account security is exceptional. Keep it up.</p>
+</div>
+</div>
+</aside>
+<!-- Main Form Section -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Personal Information Section -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10">
+<h3 class="text-lg font-bold text-primary mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined">person</span>
+                        Personal Information
+                    </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+<!-- Full Name -->
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Full Name</label>
+<input class="bg-surface-container-low border-none rounded-lg p-4 text-on-surface focus:ring-1 focus:ring-primary-fixed/40 placeholder:text-outline/50" type="text" value="Alex Thompson"/>
+</div>
+<!-- Email -->
+<div class="flex flex-col gap-2 relative">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Email Address</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-lg p-4 pr-24 text-on-surface focus:ring-1 focus:ring-primary-fixed/40" type="email" value="alex.t@nexusfoundry.io"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-tertiary/10 text-tertiary px-2 py-1 rounded border border-tertiary/20">VERIFIED</span>
+</div>
+</div>
+<!-- Phone Number -->
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Phone Number</label>
+<input class="bg-surface-container-low border-none rounded-lg p-4 text-on-surface focus:ring-1 focus:ring-primary-fixed/40" type="tel" value="+1 (555) 000-9821"/>
+</div>
+<!-- Country -->
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Country/Region</label>
+<select class="bg-surface-container-low border-none rounded-lg p-4 text-on-surface focus:ring-1 focus:ring-primary-fixed/40 appearance-none">
+<option selected="">United States</option>
+<option>United Kingdom</option>
+<option>Singapore</option>
+<option>Switzerland</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Security Protocols Section -->
+<section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10">
+<h3 class="text-lg font-bold text-primary mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined">security</span>
+                        Vault Security
+                    </h3>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-on-surface">Two-Factor Authentication</span>
+<span class="text-sm text-on-surface-variant">Secure your trades with an additional verification layer.</span>
+</div>
+<button class="w-12 h-6 bg-primary rounded-full relative flex items-center justify-end px-1 shadow-[0_0_12px_rgba(240,185,11,0.2)]">
+<div class="w-4 h-4 bg-on-primary rounded-full"></div>
+</button>
+</div>
+<div class="mt-8 pt-8 border-t border-outline-variant/10 flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-on-surface">Login History</span>
+<span class="text-sm text-on-surface-variant">Last session: 10m ago from San Francisco, US.</span>
+</div>
+<button class="text-secondary hover:text-primary transition-colors text-sm font-bold flex items-center gap-1">
+                            VIEW LOGS
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Actions -->
+<div class="flex items-center justify-end gap-4 pt-4">
+<button class="px-8 py-4 text-secondary font-bold hover:bg-surface-container-high rounded-xl transition-all active:scale-95">
+                        Cancel
+                    </button>
+<button class="px-10 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-[0_4px_24px_rgba(240,185,11,0.15)] hover:shadow-[0_4px_32px_rgba(240,185,11,0.25)] transition-all active:scale-95">
+                        Save Changes
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 pb-safe bg-[#111417]/80 backdrop-blur-xl z-50 rounded-t-xl border-t border-[#4f4633]/15 shadow-[0_-4px_40px_rgba(90,67,0,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#c1c7d1] hover:text-[#F0B90B] transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">equalizer</span>
+<span class="font-['Inter'] text-[10px] font-medium">Markets</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c1c7d1] hover:text-[#F0B90B] transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">swap_vert</span>
+<span class="font-['Inter'] text-[10px] font-medium">Trade</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c1c7d1] hover:text-[#F0B90B] transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-['Inter'] text-[10px] font-medium">Wallet</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F0B90B] bg-[#F0B90B]/10 rounded-xl px-3 py-1.5 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Inter'] text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

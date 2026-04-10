@@ -1,0 +1,10 @@
+type Query {
+    # Lấy giá từ Redis
+    getCryptoPrice(symbol: String!): CryptoPrice @field(resolver: "App\\GraphQL\\Queries\\CryptoPriceResolver")
+}
+
+type CryptoPrice {
+    symbol: String!
+    price: Float
+    change_24h: Float
+}

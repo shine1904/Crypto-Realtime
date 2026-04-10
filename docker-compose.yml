@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # Database PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: crypto_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: crypto_portfolio
+      POSTGRES_USER: quang_admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgresql/data
+
+  # Cache & Real-time Redis
+  redis:
+    image: redis:7-alpine
+    container_name: crypto_redis
+    restart: always
+    ports:
+      - "6380:6379"
+    command: redis-server --save 60 1 --loglevel warning --protected-mode no
+
+  # Mail Server để test Forgot Password
+  mailpit:
+    image: 'axllent/mailpit'
+    container_name: crypto_mailpit
+    restart: always
+    ports:
+      - '1025:1025' # SMTP port cho Laravel
+      - '8025:8025' # Dashboard xem mail trên trình duyệt

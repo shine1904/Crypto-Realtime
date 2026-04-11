@@ -1,5 +1,4 @@
 import React from 'react';
-import Footer from '@/components/layout/Footer';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import MarketTable from '@/components/dashboard/MarketTable';
 
@@ -76,7 +75,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

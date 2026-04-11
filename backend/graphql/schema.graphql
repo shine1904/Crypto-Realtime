@@ -10,3 +10,13 @@ type CryptoPrice {
     price: Float
     change_24h: Float
 }
+type CoinPrice {
+    symbol: String!
+    price: Float!
+    change_24h: Float
+}
+
+type Subscription {
+    # Lắng nghe biến động giá của một hoặc nhiều coin
+    priceUpdated(symbols: [String!]): CoinPrice
+}

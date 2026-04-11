@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import DashboardNavbar from '../../components/layout/DashboardNavbar';
+import Navbar from '@/components/layout/Navbar';
+import DashboardFooter from '@/components/layout/DashboardFooter';
 import PortfolioSummary from '../../components/dashboard/PortfolioSummary';
 import HoldingsTable from '../../components/dashboard/HoldingsTable';
 import AllocationChart from '../../components/dashboard/AllocationChart';
@@ -12,7 +13,7 @@ export default function UserDashboard() {
 
   return (
     <div className="bg-[#0b0e11] text-[#e1e2e7] min-h-screen pb-24 font-['Inter']">
-      <DashboardNavbar />
+      <Navbar />
       <main className="pt-20 px-4 max-w-5xl mx-auto space-y-6">
         <PortfolioSummary />
         <HoldingsTable />
@@ -27,21 +28,7 @@ export default function UserDashboard() {
         <span className="material-symbols-outlined text-[#3f2e00] font-bold text-2xl" data-icon="add">add</span>
       </button>
 
-      {/* BottomNavBar */}
-      <nav className="fixed bottom-0 left-0 w-full h-20 bg-[#111417]/80 backdrop-blur-xl border-t border-[#4f4633]/15 flex justify-around items-center px-4 pb-4 z-50">
-        <div className="flex flex-col items-center justify-center text-[#F0B90B] bg-gradient-to-br from-[#ffd87f]/10 to-[#f0b90b]/5 rounded-xl px-4 py-2">
-          <span className="material-symbols-outlined" data-icon="monitoring">monitoring</span>
-          <span className="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Market</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-[#c1c7d1] px-4 py-2 hover:text-[#F0B90B] transition-all duration-300">
-          <span className="material-symbols-outlined" data-icon="swap_calls">swap_calls</span>
-          <span className="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Trade</span>
-        </div>
-        <div className="flex flex-col items-center justify-center text-[#c1c7d1] px-4 py-2 hover:text-[#F0B90B] transition-all duration-300">
-          <span className="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
-          <span className="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">Wallet</span>
-        </div>
-      </nav>
+      <DashboardFooter />
 
       {/* Transaction Modal Overlay */}
       <TransactionModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />

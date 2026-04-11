@@ -1,4 +1,5 @@
 import Navbar from '@/components/layout/Navbar';
+import DashboardFooter from '@/components/layout/DashboardFooter';
 import React from 'react';
 
 export default function MainLayout({
@@ -10,6 +11,7 @@ export default function MainLayout({
     <>
       <Navbar />
       {children}
+      <DashboardFooter />
     </>
   );
 }

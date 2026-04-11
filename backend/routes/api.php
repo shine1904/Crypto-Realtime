@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\PortfolioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +47,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
     });
+    Route::get('/portfolio', [PortfolioController::class, 'index']);
+    Route::post('/portfolio/add', [PortfolioController::class, 'store']);
+    Route::delete('/portfolio/{symbol}', [PortfolioController::class, 'destroy']);
 
     // Ví dụ: Route cho Wallet hoặc Trading sau này
     // Route::get('/portfolio', [PortfolioController::class, 'index']);

@@ -1,6 +1,9 @@
 type Query {
-    # Lấy giá từ Redis
+    # Query cũ lấy 1 con
     getCryptoPrice(symbol: String!): CryptoPrice @field(resolver: "App\\GraphQL\\Queries\\CryptoPriceResolver")
+
+    # Query mới lấy cả danh sách cho Dashboard
+    getCryptoPrices(symbols: [String!]!): [CryptoPrice] @field(resolver: "App\\GraphQL\\Queries\\CryptoPriceBatchResolver")
 }
 
 type CryptoPrice {

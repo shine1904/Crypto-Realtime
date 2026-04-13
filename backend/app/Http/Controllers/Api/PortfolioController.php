@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
 
 class PortfolioController extends Controller
 {
@@ -38,6 +39,9 @@ class PortfolioController extends Controller
             ]
         );
 
+        // Thêm symbol vào danh sách đang theo dõi trên Redis
+        Redis::sadd('sync:active_symbols', strtoupper($request->coin_symbol));
+
         return response()->json([
             'message' => 'Portfolio updated successfully',
             'data' => $wallet
@@ -47,9 +51,15 @@ class PortfolioController extends Controller
     // Xóa coin khỏi danh mục theo dõi
     public function destroy($symbol)
     {
+        $symbol = strtoupper($symbol);
         $deleted = Wallet::where('user_id', Auth::id())
-                        ->where('coin_symbol', strtoupper($symbol))
+                        ->where('coin_symbol', $symbol)
                         ->delete();
+
+        // Kiểm tra xem còn ai giữ coin này không
+        if (Wallet::where('coin_symbol', $symbol)->count() === 0) {
+            Redis::srem('sync:active_symbols', $symbol);
+        }
 
         return response()->json(['message' => $deleted ? 'Deleted' : 'Not found']);
     }

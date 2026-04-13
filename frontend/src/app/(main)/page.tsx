@@ -1,6 +1,9 @@
+"use client";
 import React from 'react';
-import SummaryCards from '@/components/dashboard/SummaryCards';
-import MarketTable from '@/components/dashboard/MarketTable';
+import dynamic from 'next/dynamic';
+
+const SummaryCards = dynamic(() => import('@/components/dashboard/SummaryCards'), { ssr: false });
+const MarketTable = dynamic(() => import('@/components/dashboard/MarketTable'), { ssr: false });
 
 export default function Home() {
   return (

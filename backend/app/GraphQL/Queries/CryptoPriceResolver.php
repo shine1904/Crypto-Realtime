@@ -1,8 +1,10 @@
 <?php
 
 namespace App\GraphQL\Queries;
+use App\Services\CryptoPriceService;
 
 use Illuminate\Support\Facades\Redis;
+
 
 class CryptoPriceResolver
 {
@@ -14,11 +16,12 @@ class CryptoPriceResolver
     {
         // Lấy symbol từ argument truyền vào (mặc định là BTCUSDT nếu thiếu)
         // Chúng ta nên strtoupper để khớp với key lưu trong Redis
+        $data = CryptoPriceService::getPriceData($args['symbol']);
         $symbol = strtoupper($args['symbol']);
 
         // Lấy dữ liệu từ Redis (Dữ liệu này do lệnh php artisan crypto:update-prices nạp vào)
-        $price = Redis::get("price:{$symbol}");
-        $change = Redis::get("change:{$symbol}");
+       $price=$data['price'];
+       $change=$data['change'];
 
         // Nếu Redis chưa có dữ liệu (có thể do chưa chạy lệnh crawl), trả về 0 để tránh lỗi FE
         return [

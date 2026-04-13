@@ -11,3 +11,9 @@ type CryptoPrice {
     price: Float
     change_24h: Float
 }
+type Subscription {
+    # Subscription lắng nghe sự kiện giá thay đổi
+    # symbols: danh sách coin user quan tâm để lọc dữ liệu
+    priceUpdated(symbols: [String!]): CryptoPrice
+        @subscription(class: "App\\GraphQL\\Subscriptions\\PriceUpdated")
+}

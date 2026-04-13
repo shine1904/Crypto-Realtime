@@ -1,65 +1,169 @@
-import React from 'react';
+'use client';
 
-const AllocationChart: React.FC = () => {
+import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { WalletAsset } from '@/lib/portfolioService';
+import { LivePrices } from './HoldingsTable';
+
+const CHART_COLORS = [
+  '#f0b90b', '#627eea', '#9945ff', '#f7931a',
+  '#00aae4', '#59f8a9', '#ffb4ab', '#c2a633',
+];
+
+interface AllocationChartProps {
+  portfolio: WalletAsset[];
+  livePrices: LivePrices;
+}
+
+const AllocationChart: React.FC<AllocationChartProps> = ({ portfolio, livePrices }) => {
+  // Tính value từng coin bằng useMemo
+  const allocations = useMemo(() => {
+    const items = portfolio.map((w, i) => {
+      const livePrice = livePrices[w.coin_symbol]?.price ?? w.avg_buy_price;
+      return {
+        symbol: w.coin_symbol,
+        value: livePrice * w.amount,
+        color: CHART_COLORS[i % CHART_COLORS.length],
+      };
+    });
+    const total = items.reduce((s, a) => s + a.value, 0);
+    return items.map(a => ({ ...a, pct: total > 0 ? (a.value / total) * 100 : 0 }));
+  }, [portfolio, livePrices]);
+
+  const totalValue = useMemo(
+    () => allocations.reduce((s, a) => s + a.value, 0),
+    [allocations]
+  );
+
+  // SVG donut chart
+  const CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
+  let accumulatedOffset = 0;
+
+  const segments = allocations.map((a, i) => {
+    const dashLength = (a.pct / 100) * CIRCUMFERENCE;
+    const dashOffset = CIRCUMFERENCE - accumulatedOffset;
+    accumulatedOffset += dashLength;
+    return { ...a, dashLength, dashOffset };
+  });
+
+  // P/L tổng
+  const totalPL = useMemo(() => {
+    return portfolio.reduce((sum, w) => {
+      const livePrice = livePrices[w.coin_symbol]?.price ?? w.avg_buy_price;
+      return sum + (livePrice - w.avg_buy_price) * w.amount;
+    }, 0);
+  }, [portfolio, livePrices]);
+
+  const totalInvested = useMemo(() =>
+    portfolio.reduce((s, w) => s + w.avg_buy_price * w.amount, 0),
+    [portfolio]
+  );
+
+  const totalPLPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
+  const isProfit = totalPL >= 0;
+
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8">
-      {/* Allocation Bento Card */}
+      {/* Allocation Donut */}
       <div className="bg-[#191c1f] p-6 rounded-xl border border-[#4f4633]/10">
         <h3 className="text-sm font-bold tracking-widest uppercase text-[#d3c5ac] mb-6">Allocation</h3>
-        <div className="flex items-center gap-8">
-          <div className="relative w-32 h-32 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle className="text-[#323538]" cx="64" cy="64" fill="transparent" r="54" stroke="currentColor" strokeWidth="12"></circle>
-              <circle cx="64" cy="64" fill="transparent" r="54" stroke="#F0B90B" strokeDasharray="339" strokeDashoffset="170" strokeLinecap="round" strokeWidth="12"></circle>
-            </svg>
-            <div className="absolute text-center">
-              <p className="text-[10px] font-bold text-[#d3c5ac]">BTC</p>
-              <p className="text-lg font-black text-[#e1e2e7]">50%</p>
+        {portfolio.length === 0 ? (
+          <p className="text-[#d3c5ac] text-sm text-center py-8">Chưa có tài sản nào.</p>
+        ) : (
+          <div className="flex items-center gap-8">
+            {/* Donut SVG */}
+            <div className="relative w-32 h-32 flex-shrink-0 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
+                <circle cx="64" cy="64" fill="transparent" r="54" stroke="#323538" strokeWidth="12" />
+                {segments.map((seg, i) => (
+                  <circle
+                    key={seg.symbol}
+                    cx="64" cy="64" fill="transparent" r="54"
+                    stroke={seg.color}
+                    strokeWidth="12"
+                    strokeDasharray={`${seg.dashLength} ${CIRCUMFERENCE - seg.dashLength}`}
+                    strokeDashoffset={seg.dashOffset}
+                    strokeLinecap="butt"
+                  />
+                ))}
+              </svg>
+              <div className="absolute text-center">
+                <p className="text-[9px] font-bold text-[#d3c5ac]">TOTAL</p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={totalValue}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-xs font-black text-[#e1e2e7] leading-tight"
+                  >
+                    ${(totalValue / 1000).toFixed(1)}K
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex-1 space-y-3">
+              {allocations.map(a => (
+                <div key={a.symbol} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: a.color }} />
+                    <span className="text-xs font-medium text-[#c1c7d1]">{a.symbol}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#e1e2e7]">{a.pct.toFixed(1)}%</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex-1 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#f0b90b]"></div>
-                <span className="text-xs font-medium text-[#c1c7d1]">BTC</span>
-              </div>
-              <span className="text-xs font-bold text-[#e1e2e7]">50%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span className="text-xs font-medium text-[#c1c7d1]">ETH</span>
-              </div>
-              <span className="text-xs font-bold text-[#e1e2e7]">30%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#59f8a9]"></div>
-                <span className="text-xs font-medium text-[#c1c7d1]">USDT</span>
-              </div>
-              <span className="text-xs font-bold text-[#e1e2e7]">20%</span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
-      {/* Performance Card */}
+
+      {/* Portfolio P/L Summary */}
       <div className="bg-[#191c1f] p-6 rounded-xl border border-[#4f4633]/10 relative overflow-hidden">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-sm font-bold tracking-widest uppercase text-[#d3c5ac]">7D Performance</h3>
-          <div className="px-2 py-1 rounded bg-[#59f8a9]/10 text-[#59f8a9] text-[10px] font-bold">+4.2%</div>
-        </div>
-        <div className="h-32 w-full mt-4 flex items-end gap-1">
-          {/* Simple CSS bar chart visualization */}
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[60%] hover:bg-[#f0b90b]/20 transition-colors"></div>
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[45%]"></div>
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[70%]"></div>
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[55%]"></div>
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[85%]"></div>
-          <div className="flex-1 bg-[#323538] rounded-t-sm h-[75%]"></div>
-          <div className="flex-1 bg-gradient-to-br from-[#ffd87f] to-[#f0b90b] rounded-t-sm h-[95%] shadow-[0_0_20px_rgba(240,185,11,0.2)]"></div>
-        </div>
-        <div className="flex justify-between mt-2 text-[10px] font-medium text-[#c1c7d1]/60">
-          <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+        <div className="absolute top-0 right-0 w-32 h-32 opacity-5 blur-3xl rounded-full -mr-16 -mt-16"
+          style={{ background: isProfit ? '#59f8a9' : '#ffb4ab' }} />
+        <div className="relative z-10">
+          <h3 className="text-sm font-bold tracking-widest uppercase text-[#d3c5ac] mb-6">Portfolio P&L</h3>
+          
+          <p className="text-xs text-[#d3c5ac] mb-1">Tổng Giá Trị</p>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={totalValue}
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-extrabold text-[#e1e2e7] mb-3 tracking-tight"
+            >
+              ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </motion.p>
+          </AnimatePresence>
+
+          <p className="text-xs text-[#d3c5ac] mb-1">Tổng P/L</p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={totalPL}
+              initial={{ color: isProfit ? '#59f8a9' : '#ffb4ab', scale: 1.05 }}
+              animate={{ color: isProfit ? '#59f8a9' : '#ffb4ab', scale: 1 }}
+              className="flex items-baseline gap-2"
+            >
+              <span className="text-2xl font-bold" style={{ color: isProfit ? '#59f8a9' : '#ffb4ab' }}>
+                {isProfit ? '+' : ''}${totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span
+                className="text-sm font-bold px-2 py-0.5 rounded"
+                style={{
+                  background: isProfit ? 'rgba(89,248,169,0.1)' : 'rgba(255,180,171,0.1)',
+                  color: isProfit ? '#59f8a9' : '#ffb4ab',
+                }}
+              >
+                {isProfit ? '+' : ''}{totalPLPercent.toFixed(2)}%
+              </span>
+            </motion.div>
+          </AnimatePresence>
+
+          <p className="text-xs text-[#d3c5ac] mt-4">Tổng Đã Đầu Tư</p>
+          <p className="text-lg font-bold text-[#e1e2e7]">
+            ${totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
         </div>
       </div>
     </section>

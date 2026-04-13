@@ -36,4 +36,14 @@ export const GET_MARKET_DATA = gql`
   }
 `;
 
+export const PRICE_UPDATED = gql`
+  subscription OnPriceUpdated($symbols: [String!]) {
+    priceUpdated(symbols: $symbols) {
+      symbol
+      price
+      change_24h
+    }
+  }
+`;
+
 

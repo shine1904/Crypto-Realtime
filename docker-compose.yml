@@ -32,3 +32,15 @@ services:
     ports:
       - '1025:1025' # SMTP port cho Laravel
       - '8025:8025' # Dashboard xem mail trên trình duyệt
+
+  # WebSockets Server
+  soketi:
+    image: 'quay.io/soketi/soketi:1.6-16-alpine'
+    container_name: crypto_soketi
+    restart: always
+    environment:
+      SOKETI_DEBUG: '1'
+      SOKETI_METRICS_SERVER_PORT: '9601'
+    ports:
+      - '6001:6001'
+      - '9601:9601'

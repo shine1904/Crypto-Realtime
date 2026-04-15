@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { TokenService } from '@/lib/tokenService';
 import { logoutQuery } from '@/lib/authService';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -15,15 +17,14 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('access_token');
+      const token = TokenService.getAccessToken();
       if (token) {
         await logoutQuery(token);
       }
     } catch (e) {
       console.error('Logout API failed', e);
     } finally {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user_name');
+      TokenService.clearData();
       setUser(null);
       setShowDropdown(false);
       router.push('/login');
@@ -32,13 +33,13 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="flex items-center justify-between px-4 py-3 w-full sticky top-0 z-50 bg-[#111417] border-none shadow-none">
-      <div className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
         <span className="material-symbols-outlined text-[#F0B90B] text-2xl" data-icon="grid_view">grid_view</span>
         <span className="text-[#F0B90B] font-black text-xl tracking-tighter">Binance</span>
-      </div>
+      </Link>
       <div className="hidden md:flex items-center gap-6 overflow-x-auto hide-scrollbar">
         <a className="text-[#F0B90B] font-semibold whitespace-nowrap" href="#">Mua Crypto</a>
-        <a className="text-[#848E9C] hover:text-white whitespace-nowrap" href="#">Thị trường</a>
+        <Link className="text-[#848E9C] hover:text-white whitespace-nowrap" href="/markets">Thị trường</Link>
         <a className="text-[#848E9C] hover:text-white whitespace-nowrap" href="#">Giao dịch</a>
         <a className="text-[#848E9C] hover:text-white whitespace-nowrap" href="#">Futures</a>
         <a className="text-[#848E9C] hover:text-white whitespace-nowrap" href="#">Earn</a>

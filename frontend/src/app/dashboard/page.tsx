@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Navbar from '@/components/layout/Navbar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { fetchPortfolio, removeAsset, WalletAsset } from '@/lib/portfolioService';
+import { useAuth } from '@/app/context/AuthContext';
 
 // Dynamic imports (ssr: false) để tránh lỗi Apollo hydration
 const PortfolioSummary = dynamic(() => import('../../components/dashboard/PortfolioSummary'), { ssr: false });
@@ -14,6 +15,7 @@ const TransactionModal = dynamic(() => import('../../components/dashboard/Transa
 const LivePriceProvider = dynamic(() => import('../../components/dashboard/LivePriceProvider'), { ssr: false });
 
 export default function UserDashboard() {
+  const { user } = useAuth();
   const [portfolio, setPortfolio] = useState<WalletAsset[]>([]);
   const [loadingPortfolio, setLoadingPortfolio] = useState(true);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -31,7 +33,13 @@ export default function UserDashboard() {
     }
   }, []);
 
-  useEffect(() => { loadPortfolio(); }, [loadPortfolio]);
+  useEffect(() => { 
+    if (user) {
+      loadPortfolio(); 
+    } else {
+      setPortfolio([]);
+    }
+  }, [user, loadPortfolio]);
 
   // Xóa coin
   const handleRemove = useCallback(async (symbol: string) => {

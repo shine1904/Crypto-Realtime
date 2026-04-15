@@ -19,7 +19,7 @@ const AllocationChart: React.FC<AllocationChartProps> = ({ portfolio, livePrices
   // Tính value từng coin bằng useMemo
   const allocations = useMemo(() => {
     const items = portfolio.map((w, i) => {
-      const livePrice = livePrices[w.coin_symbol]?.price ?? w.avg_buy_price;
+      const livePrice = livePrices[w.coin_symbol]?.price ?? w.average_buy_price;
       return {
         symbol: w.coin_symbol,
         value: livePrice * w.amount,
@@ -49,13 +49,13 @@ const AllocationChart: React.FC<AllocationChartProps> = ({ portfolio, livePrices
   // P/L tổng
   const totalPL = useMemo(() => {
     return portfolio.reduce((sum, w) => {
-      const livePrice = livePrices[w.coin_symbol]?.price ?? w.avg_buy_price;
-      return sum + (livePrice - w.avg_buy_price) * w.amount;
+      const livePrice = livePrices[w.coin_symbol]?.price ?? w.average_buy_price;
+      return sum + (livePrice - w.average_buy_price) * w.amount;
     }, 0);
   }, [portfolio, livePrices]);
 
   const totalInvested = useMemo(() =>
-    portfolio.reduce((s, w) => s + w.avg_buy_price * w.amount, 0),
+    portfolio.reduce((s, w) => s + w.average_buy_price * w.amount, 0),
     [portfolio]
   );
 

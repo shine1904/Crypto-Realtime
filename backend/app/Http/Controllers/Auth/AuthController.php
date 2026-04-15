@@ -117,12 +117,13 @@ public function handleGoogleCallback()
 
         // Đăng nhập user và tạo Access Token
         $token = auth('api')->login($user);
+        $expiresIn = auth('api')->factory()->getTTL() * 60;
 
         // Gọi hàm cấp tokens (Hàm này của Quang đã có logic set Cookie Refresh Token rồi)
         $this->respondWithTokens($user, $token);
 
         // Redirect người dùng quay lại trang callback của Next.js kèm theo token
-        return redirect()->to("http://localhost:3000/auth/callback?token={$token}");
+        return redirect()->to("http://localhost:3000/auth/callback?token={$token}&expires_in={$expiresIn}");
 
     } catch (\Exception $e) {
         // Nếu lỗi, trả về trang login kèm thông báo
@@ -133,5 +134,24 @@ public function me()
 {
     // Trả về thông tin user đang đăng nhập qua JWT
     return response()->json(auth('api')->user());
+}
+
+public function refresh(Request $request)
+{
+    $refreshToken = $request->cookie('refresh_token');
+
+    if (!$refreshToken) {
+        return response()->json(['error' => 'Refresh token not found'], 401);
+    }
+
+    $user = User::where('refresh_token', hash('sha256', $refreshToken))->first();
+
+    if (!$user) {
+        return response()->json(['error' => 'Invalid refresh token'], 401);
+    }
+
+    $token = auth('api')->login($user);
+
+    return $this->respondWithTokens($user, $token);
 }
 }

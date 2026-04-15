@@ -30,6 +30,9 @@ Route::group(['prefix' => 'auth'], function () {
     // Refresh token: Cần để public vì khi Access Token hết hạn, 
     // user sẽ dùng cái này để lấy lại quyền truy cập mà không cần nhập pass lại.
     Route::post('refresh', [AuthController::class, 'refresh']);
+
+    // Route Tin tức mới nhất (Công khai cho SSR)
+    Route::get('news', [\App\Http\Controllers\Api\NewsController::class, 'index']);
 });
 
 // --- NHÓM 2: CÁC ROUTE CẦN ĐĂNG NHẬP (PROTECTED) ---
@@ -51,6 +54,4 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/portfolio/add', [PortfolioController::class, 'store']);
     Route::delete('/portfolio/{symbol}', [PortfolioController::class, 'destroy']);
 
-    // Ví dụ: Route cho Wallet hoặc Trading sau này
-    // Route::get('/portfolio', [PortfolioController::class, 'index']);
 });

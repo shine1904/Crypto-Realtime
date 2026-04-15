@@ -5,34 +5,73 @@ use Illuminate\Support\Facades\Redis;
 
 class CryptoPriceService
 {
-    // Hàm này dành cho các file cũ (lấy 1 đồng coin)
-    public static function getPriceData(string $symbol)
+    /**
+     * Map input symbol (e.g. BTCUSDT or BTC) to the standard Redis short symbol (BTC)
+     */
+    public static function getShortSymbol(string $symbol)
     {
         $symbol = strtoupper($symbol);
+        if (str_ends_with($symbol, 'USDT')) {
+            return substr($symbol, 0, -4);
+        }
+        return $symbol;
+    }
+
+    /**
+     * Lấy dữ liệu cho 1 đồng coin
+     */
+    public static function getPriceData(string $symbol)
+    {
+        $short = self::getShortSymbol($symbol);
+        
+        $price = Redis::get("crypto:price:{$short}");
+        $change = Redis::get("crypto:change:{$short}");
+
         return [
-            'price' => (float) Redis::get("price:{$symbol}"),
-            'change' => (float) Redis::get("change:{$symbol}"),
+            'price' => $price ? (float) $price : 0.0,
+            'change' => $change ? (float) $change : 0.0,
         ];
     }
 
-    // Hàm này dành cho Dashboard (dùng MGET để tối ưu)
+    /**
+     * Lấy dữ liệu theo lô (Batch) - Tối ưu bằng MGET
+     */
     public static function getBatchPriceData(array $symbols)
     {
-        $priceKeys = collect($symbols)->map(fn($s) => "price:".strtoupper($s))->toArray();
-        $changeKeys = collect($symbols)->map(fn($s) => "change:".strtoupper($s))->toArray();
+        if (empty($symbols)) return [];
 
-        // MGET lấy tất cả
-        $allValues = Redis::mget(array_merge($priceKeys, $changeKeys));
-        
-        $count = count($symbols);
-        $results = [];
+        $mapped = [];
+        $allKeys = [];
 
-        for ($i = 0; $i < $count; $i++) {
-            $results[strtoupper($symbols[$i])] = [
-                'price' => (float) ($allValues[$i] ?? 0),
-                'change' => (float) ($allValues[$i + $count] ?? 0),
+        foreach ($symbols as $inputSymbol) {
+            $short = self::getShortSymbol($inputSymbol);
+            $priceKey = "crypto:price:{$short}";
+            $changeKey = "crypto:change:{$short}";
+            
+            $allKeys[] = $priceKey;
+            $allKeys[] = $changeKey;
+            
+            $mapped[$inputSymbol] = [
+                'priceKey' => $priceKey,
+                'changeKey' => $changeKey
             ];
         }
+
+        $values = Redis::mget($allKeys);
+        $valueMap = array_combine($allKeys, $values);
+
+        $results = [];
+        foreach ($symbols as $inputSymbol) {
+            $m = $mapped[$inputSymbol];
+            $price = $valueMap[$m['priceKey']] ?? 0;
+            $change = $valueMap[$m['changeKey']] ?? 0;
+
+            $results[strtoupper($inputSymbol)] = [
+                'price' => (float) $price,
+                'change' => (float) $change,
+            ];
+        }
+
         return $results;
     }
 }

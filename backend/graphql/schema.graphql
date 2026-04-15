@@ -2,7 +2,20 @@ type Query {
     # Lấy giá từ Redis
     getCryptoPrice(symbol: String!): CryptoPrice @field(resolver: "App\\GraphQL\\Queries\\CryptoPriceResolver")
 
-marketPrices(symbols: [String!]!): [CryptoPrice] @field(resolver: "App\\GraphQL\\Queries\\MarketPriceResolver")
+    marketPrices(symbols: [String!]!): [CryptoPrice] @field(resolver: "App\\GraphQL\\Queries\\MarketPriceResolver")
+
+    # Lấy tin tức mới nhất
+    latestNews(limit: Int = 10): [NewsArticle] @field(resolver: "App\\GraphQL\\Queries\\LatestNewsResolver")
+}
+
+type NewsArticle {
+    id: ID!
+    title: String!
+    description: String
+    thumbnail_url: String
+    source_name: String
+    origin_url: String
+    published_at: String
 }
 
 type CryptoPrice {

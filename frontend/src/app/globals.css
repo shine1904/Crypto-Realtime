@@ -8,6 +8,55 @@
   --color-binance-gray: #1E2329;
   --color-binance-green: #0ECB81;
   --color-binance-red: #F6465D;
+
+  /* Stitch Theme Colors */
+  --color-tertiary: #59f8a9;
+  --color-on-surface: #e1e2e7;
+  --color-on-primary-fixed: #251a00;
+  --color-on-secondary-container: #b0b5c0;
+  --color-surface-dim: #111417;
+  --color-secondary-container: #414750;
+  --color-tertiary-fixed-dim: #3be194;
+  --color-surface-container-highest: #323538;
+  --color-surface-container: #1d2023;
+  --color-surface-container-low: #191c1f;
+  --color-on-secondary: #2b3139;
+  --color-on-surface-variant: #d3c5ac;
+  --color-on-tertiary-container: #005b37;
+  --color-secondary: #c1c7d1;
+  --color-error: #ffb4ab;
+  --color-outline: #9b8f79;
+  --color-tertiary-fixed: #60feae;
+  --color-primary-fixed: #ffdf99;
+  --color-secondary-fixed-dim: #c1c7d1;
+  --color-on-secondary-fixed: #161c24;
+  --color-tertiary-container: #32db8f;
+  --color-primary: #ffd87f;
+  --color-surface-container-high: #272a2e;
+  --color-inverse-surface: #e1e2e7;
+  --color-on-primary-container: #644b00;
+  --color-error-container: #93000a;
+  --color-surface-bright: #37393d;
+  --color-on-tertiary: #003920;
+  --color-on-error: #690005;
+  --color-primary-fixed-dim: #f6be16;
+  --color-inverse-primary: #775a00;
+  --color-on-tertiary-fixed: #002111;
+  --color-on-secondary-fixed-variant: #414750;
+  --color-surface: #111417;
+  --color-on-primary-fixed-variant: #5a4300;
+  --color-background: #111417;
+  --color-inverse-on-surface: #2e3134;
+  --color-on-error-container: #ffdad6;
+  --color-surface-container-lowest: #0b0e11;
+  --color-secondary-fixed: #dde3ed;
+  --color-on-primary: #3f2e00;
+  --color-outline-variant: #4f4633;
+  --color-on-tertiary-fixed-variant: #005231;
+  --color-surface-tint: #f6be16;
+  --color-primary-container: #f0b90b;
+  --color-surface-variant: #323538;
+  --color-on-background: #e1e2e7;
   
   --font-inter: var(--font-inter); /* Kết nối với font từ layout.tsx */
 }
@@ -32,4 +81,31 @@
   .card-dark {
     @apply bg-[--color-binance-gray] border border-[#2B3139] rounded-xl p-4;
   }
+
+  /* Stitch Custom Classes */
+  .glass-card {
+      background: rgba(50, 53, 56, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-panel {
+      background: rgba(50, 53, 56, 0.8);
+      backdrop-filter: blur(20px);
+  }
+  .metallic-gradient {
+      background: linear-gradient(135deg, #ffd87f 0%, #f0b90b 100%);
+  }
+  .ghost-border {
+      outline: 1px solid rgba(79, 70, 51, 0.15);
+  }
+  .candlestick-green { height: 60%; background: #32db8f; width: 4px; position: relative; }
+  .candlestick-green::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: 1px; width: 2px; background: #32db8f; opacity: 0.5; }
+  .candlestick-red { height: 45%; background: #ffb4ab; width: 4px; position: relative; }
+  .candlestick-red::before { content: ''; position: absolute; top: -15px; bottom: -15px; left: 1px; width: 2px; background: #ffb4ab; opacity: 0.5; }
+}
+
+@layer utilities {
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface-container-lowest, #0b0e11); }
+  ::-webkit-scrollbar-thumb { background: var(--color-surface-container-high, #272a2e); border-radius: 10px; }
 }

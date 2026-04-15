@@ -1,7 +1,7 @@
 <?php
 namespace App\GraphQL\Queries;
 
-use Illuminate\Support\Facades\Redis;
+use App\Services\CryptoPriceService;
 
 class CryptoPriceBatchResolver
 {
@@ -11,25 +11,18 @@ class CryptoPriceBatchResolver
      */
     public function __invoke($_, array $args)
     {
-        $symbols = $args['symbols']; // Mảng symbols truyền từ FE: ["BTCUSDT", "ETHUSDT"...]
-        
+        $symbols = $args['symbols'];
+        $batchData = CryptoPriceService::getBatchPriceData($symbols);
+
         $results = [];
-
-        foreach ($symbols as $symbol) {
-            $symbol = strtoupper($symbol);
-            
-            // Lấy dữ liệu từ Redis mà Worker của bạn đã đổ vào trước đó
-            $priceKeys = ['price:BTCUSDT', 'price:ETHUSDT'];
-            $changeKeys = ['change:BTCUSDT', 'change:ETHUSDT'];
-
-            // Gom tất cả vào 1 mảng để lấy 1 lần
-            $allKeys = array_merge($priceKeys, $changeKeys);
-            $values = Redis::mget($allKeys);
+        foreach ($symbols as $s) {
+            $upper = strtoupper($s);
+            $data = $batchData[$upper] ?? ['price' => 0, 'change' => 0];
 
             $results[] = [
-                'symbol' => $symbol,
-                'price' => $priceKeys ? (float) $priceKeys : 0,
-                'change_24h' => $changeKeys ? (float) $changeKeys : 0,
+                'symbol' => $upper,
+                'price' => $data['price'],
+                'change_24h' => $data['change'],
             ];
         }
 

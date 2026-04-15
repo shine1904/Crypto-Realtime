@@ -30,9 +30,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ isOpen, onClose, on
     setError(null);
     try {
       await addAsset({
-        coin_symbol: symbol.trim().toUpperCase(),
+        symbol: symbol.trim().toUpperCase(),
         amount: parseFloat(amount),
-        avg_buy_price: avgBuyPrice ? parseFloat(avgBuyPrice) : undefined,
+        price: avgBuyPrice ? parseFloat(avgBuyPrice) : 0,
+        type: 'BUY',
       });
       onSuccess();
       handleClose();

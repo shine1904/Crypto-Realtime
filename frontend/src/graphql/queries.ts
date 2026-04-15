@@ -47,3 +47,16 @@ export const PRICE_UPDATED = gql`
 `;
 
 
+export const GET_LATEST_NEWS = gql`
+  query GetLatestNews($limit: Int) {
+    latestNews(limit: $limit) {
+      id
+      title
+      description
+      thumbnail_url
+      source_name
+      origin_url
+      published_at
+    }
+  }
+`;

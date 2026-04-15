@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { TokenService } from '@/lib/tokenService';
 
 function AuthCallbackInner() {
     const router = useRouter();
@@ -9,8 +10,13 @@ function AuthCallbackInner() {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        const expiresInStr = searchParams.get('expires_in');
+        
         if (token) {
-            localStorage.setItem('access_token', token);
+            // Default to 15m (900s) if not provided by backend
+            const expiresIn = expiresInStr ? parseInt(expiresInStr, 10) : 900;
+            
+            TokenService.saveTokenData(token, expiresIn);
             console.log('Google Login Successful!');
             router.push('/');
         } else {

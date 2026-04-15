@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Binance Clone",
-  description: "Dự án Crypto Portfolio Tracker - KMA",
+  description: "Dự án Crypto Portfolio Tracker",
 };
 
 // CHỈ GIỮ LẠI DUY NHẤT 1 HÀM RootLayout NÀY

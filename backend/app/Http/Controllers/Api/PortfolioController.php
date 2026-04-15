@@ -2,65 +2,101 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Wallet;
+use App\Models\Holding;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class PortfolioController extends Controller
 {
-    // Lấy danh sách coin trong ví của User
-    public function index()
-    {
-        $wallets = Wallet::where('user_id', Auth::id())->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $wallets
-        ]);
-    }
-
-    // Thêm hoặc cập nhật coin
     public function store(Request $request)
     {
         $request->validate([
-            'coin_symbol' => 'required|string|max:10',
-            'amount' => 'required|numeric|min:0',
-            'avg_buy_price' => 'nullable|numeric|min:0',
+            'symbol' => 'required|string',
+            'amount' => 'required|numeric|min:0.00000001',
+            'price' => 'required|numeric|min:0',
+            'type' => 'required|in:BUY,SELL',
         ]);
 
-        $wallet = Wallet::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'coin_symbol' => strtoupper($request->coin_symbol),
-            ],
-            [
-                'amount' => $request->amount,
-                'avg_buy_price' => $request->avg_buy_price,
-            ]
-        );
+        return DB::transaction(function () use ($request) {
+            $user = $request->user();
+            $symbol = strtoupper($request->symbol);
+            $amount = $request->amount;
+            $price = $request->price;
 
-        // Thêm symbol vào danh sách đang theo dõi trên Redis
-        Redis::sadd('sync:active_symbols', strtoupper($request->coin_symbol));
+            // 1. Lưu nhật ký giao dịch
+            Transaction::create([
+                'user_id' => $user->id,
+                'coin_symbol' => $symbol,
+                'type' => $request->type,
+                'amount' => $amount,
+                'price' => $price,
+            ]);
 
-        return response()->json([
-            'message' => 'Portfolio updated successfully',
-            'data' => $wallet
-        ]);
+            // 2. Cập nhật bảng Holdings (Số dư hiện tại)
+            $holding = Holding::firstOrNew([
+                'user_id' => $user->id,
+                'coin_symbol' => $symbol
+            ]);
+
+            if ($request->type === 'BUY') {
+                // Tính toán Giá vốn bình quân (DCA)
+                $oldTotalCost = $holding->amount * $holding->average_buy_price;
+                $newInvestment = $amount * $price;
+                $newTotalAmount = $holding->amount + $amount;
+
+                $holding->average_buy_price = ($oldTotalCost + $newInvestment) / $newTotalAmount;
+                $holding->amount = $newTotalAmount;
+            } else {
+                // Nếu SELL: Kiểm tra số dư trước khi bán
+                if ($holding->amount < $amount) {
+                    throw new \Exception("Số dư không đủ để bán!");
+                }
+                $holding->amount -= $amount;
+            }
+
+            $holding->save();
+
+            // 3. Quản lý Redis cho Worker (Chỉ sync khi còn tài sản)
+            $this->manageRedisSync($symbol);
+
+            return response()->json([
+                'message' => 'Giao dịch thành công',
+                'holding' => $holding
+            ]);
+        });
     }
 
-    // Xóa coin khỏi danh mục theo dõi
-    public function destroy($symbol)
+    private function manageRedisSync($symbol)
     {
-        $symbol = strtoupper($symbol);
-        $deleted = Wallet::where('user_id', Auth::id())
-                        ->where('coin_symbol', $symbol)
-                        ->delete();
+        // Kiểm tra xem trên toàn hệ thống còn ai giữ coin này không
+        $isStillHeld = Holding::where('coin_symbol', $symbol)
+                              ->where('amount', '>', 0)
+                              ->exists();
 
-        // Kiểm tra xem còn ai giữ coin này không
-        if (Wallet::where('coin_symbol', $symbol)->count() === 0) {
+        if ($isStillHeld) {
+            // Thêm vào danh sách theo dõi của Worker
+            Redis::sadd('sync:active_symbols', $symbol);
+        } else {
+            // Xóa khỏi Redis để tiết kiệm tài nguyên Worker nếu không còn ai giữ
             Redis::srem('sync:active_symbols', $symbol);
         }
-
-        return response()->json(['message' => $deleted ? 'Deleted' : 'Not found']);
     }
+    /**
+ * Lấy danh sách tài sản đang nắm giữ (Holdings) của User
+ */
+public function index(Request $request)
+{
+    // Lấy tất cả các đồng coin có số lượng > 0 của user hiện tại
+    $holdings = Holding::where('user_id', $request->user()->id)
+        ->where('amount', '>', 0)
+        ->orderBy('amount', 'desc')
+        ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $holdings
+    ]);
+}
 }

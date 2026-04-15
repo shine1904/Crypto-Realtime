@@ -3,26 +3,29 @@
 namespace App\GraphQL\Queries;
 use App\Services\CryptoPriceService;
 
-use Illuminate\Support\Facades\Redis;
-
 class MarketPriceResolver
 {
+    /**
+     * @param  null  $_
+     * @param  array{symbols: string[]}  $args
+     */
     public function __invoke($_, array $args)
     {
+        $symbols = $args['symbols'];
+        $batchData = CryptoPriceService::getBatchPriceData($symbols);
+
         $results = [];
-        foreach ($args['symbols'] as $symbol) {
-            $data=CryptoPriceService::getPriceData($symbol);
-            $upperSymbol = strtoupper($symbol);
-            
-            // Nếu bạn truyền "BTC", nó sẽ tìm key "price:BTCUSDT"
-            $fullSymbol = str_contains($upperSymbol, 'USDT') ? $upperSymbol : $upperSymbol . 'USDT';
+        foreach ($symbols as $s) {
+            $upper = strtoupper($s);
+            $data = $batchData[$upper] ?? ['price' => 0, 'change' => 0];
 
             $results[] = [
-                'symbol' => $upperSymbol,
-                'price' => (float) Redis::get("price:{$fullSymbol}"),
-                'change_24h' => (float) Redis::get("change:{$fullSymbol}"),
+                'symbol' => $upper,
+                'price' => $data['price'],
+                'change_24h' => $data['change'],
             ];
         }
+
         return $results;
     }
 }

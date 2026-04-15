@@ -14,7 +14,7 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ portfolio, livePric
   // Tổng giá trị hiện tại
   const totalValue = useMemo(() =>
     portfolio.reduce((sum, w) => {
-      const livePrice = livePrices[w.coin_symbol]?.price ?? w.avg_buy_price;
+      const livePrice = livePrices[w.coin_symbol]?.price ?? w.average_buy_price;
       return sum + livePrice * w.amount;
     }, 0),
     [portfolio, livePrices]
@@ -22,7 +22,7 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ portfolio, livePric
 
   // Tổng tiền đã đầu tư
   const totalInvested = useMemo(() =>
-    portfolio.reduce((sum, w) => sum + w.avg_buy_price * w.amount, 0),
+    portfolio.reduce((sum, w) => sum + w.average_buy_price * w.amount, 0),
     [portfolio]
   );
 

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TokenService } from '@/lib/tokenService';
 import { loginQuery } from '@/lib/authService';
 
 export default function LoginPage() {
@@ -19,12 +20,14 @@ export default function LoginPage() {
 
     try {
       const data = await loginQuery({ email, password });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', data.access_token);
-        if (data.user?.name) {
-          localStorage.setItem('user_name', data.user.name);
-        }
-      }
+      
+      // Use TokenService to save data centrally
+      TokenService.saveTokenData(
+        data.access_token, 
+        data.expires_in, 
+        data.user?.name
+      );
+
       setSuccess('Đăng nhập thành công! Đang vào sàn...');
       setTimeout(() => {
         router.push('/');

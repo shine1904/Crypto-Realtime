@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "dg/rss-php": "^1.6",
         "doctrine/dbal": "^3.10",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^9.19",
@@ -16,6 +17,7 @@
         "nuwave/lighthouse": "^6.66",
         "php-open-source-saver/jwt-auth": "^2.2",
         "predis/predis": "^3.4",
+        "pusher/pusher-php-server": "^7.2",
         "ratchet/pawl": "^0.4.3"
     },
     "require-dev": {

@@ -11,116 +11,221 @@ use React\EventLoop\Loop;
 class BinancePriceWorker extends Command
 {
     protected $signature = 'binance:price-worker';
-    protected $description = 'Worker lấy giá real-time từ Binance (WebSocket) và đẩy vào hệ thống';
+    protected $description = 'Worker lấy giá real-time từ Binance (WebSocket)';
 
     protected $currentSymbols = [];
     protected $lastPublished = [];
+    protected $lastMessageTime = 0;
+    protected $syncTimer = null;
 
     public function handle()
     {
-        $this->info("Worker đang khởi động (WebSocket Mode)...");
+        $this->info("Worker start...");
 
         $loop = Loop::get();
-        $reactConnector = new \React\Socket\Connector(['timeout' => 15]);
-        $connector = new Connector($loop, $reactConnector);
+        $connector = new Connector($loop);
 
-        $this->connectToBinance($connector, $loop);
+        $this->connect($connector, $loop);
 
         $loop->run();
     }
 
-    protected function connectToBinance(Connector $connector, $loop)
+    protected function connect($connector, $loop)
     {
-        $connector('wss://stream.binance.com:9443/ws')->then(function(WebSocket $conn) use ($connector, $loop) {
-            $this->info("Đã kết nối với Binance WebSocket!");
+        $this->lastMessageTime = microtime(true);
 
-            // Hàng đợi kiểm tra symbols định kỳ (mỗi 3 giây)
-            $loop->addPeriodicTimer(3.0, function () use ($conn) {
-                // Lấy symbols đang theo dõi
-                $rawSymbols = Redis::smembers('sync:active_symbols');
-                $symbols = [];
-                // Binance WS yêu cầu symbol in thường
-                foreach ($rawSymbols as $s) {
-                    // Cặp giao dịch thông thường có đuôi USDT, nếu người dùng thêm "BTC", ta tự động append "USDT".
-                    // Code cũ (BinanceService) tự động lấy USDT.
-                    // Tùy theo cách user lưu symbol: Nếu lưu "BTC", "ETH" -> thêm USDT.
-                    $pair = strtolower($s) . 'usdt';
-                    $symbols[$pair] = strtoupper($s);
+        $connector('wss://stream.binance.com:9443/ws')->then(
+            function (WebSocket $conn) use ($connector, $loop) {
+
+                $this->info("Connected Binance");
+
+                // WATCHDOG: kill nếu không có data
+                $watchdog = $loop->addPeriodicTimer(30, function () use ($conn) {
+                    $diff = microtime(true) - $this->lastMessageTime;
+
+                    if ($diff > 60) {
+                        $this->error("No data {$diff}s -> force reconnect");
+                        $conn->close();
+                    }
+                });
+
+                // SYNC SYMBOL
+                if ($this->syncTimer) {
+                    $loop->cancelTimer($this->syncTimer);
                 }
 
-                $newPairs = array_keys($symbols);
-                sort($newPairs);
-                
-                $currentPairs = array_keys($this->currentSymbols);
-                sort($currentPairs);
+                $this->syncTimer = $loop->addPeriodicTimer(5, function () use ($conn) {
+                    try {
+                        $raw = Redis::smembers('sync:active_symbols');
+                        if (!is_array($raw)) $raw = [];
 
-                if ($newPairs !== $currentPairs) {
-                    // Update current symbols
-                    $this->currentSymbols = $symbols;
+                        // DB Fallback: Nếu Redis trống, seed từ Holdings (user-added coins)
+                        if (empty($raw)) {
+                            $dbSymbols = \App\Models\Holding::where('amount', '>', 0)->distinct()->pluck('coin_symbol')->toArray();
+                            if (!empty($dbSymbols)) {
+                                $this->info("Seeding Redis from DB...");
+                                foreach ($dbSymbols as $ds) {
+                                    Redis::sadd('sync:active_symbols', strtoupper($ds));
+                                }
+                                $raw = $dbSymbols;
+                            }
+                        }
 
-                    // Unsubscribe all cũ
-                    if (!empty($currentPairs)) {
-                        $unsubParams = array_map(function($p) { return $p . '@ticker'; }, $currentPairs);
-                        $conn->send(json_encode([
-                            'method' => 'UNSUBSCRIBE',
-                            'params' => $unsubParams,
-                            'id' => 1
-                        ]));
-                    }
+                        // Gộp với Market Baseline (Top 100)
+                        $baseline = $this->getMarketBaselineSymbols();
+                        $merged = array_unique(array_merge($raw, $baseline));
 
-                    // Subscribe mới
-                    if (!empty($newPairs)) {
-                        $subParams = array_map(function($p) { return $p . '@ticker'; }, $newPairs);
-                        $this->info("Subscribing: " . implode(', ', $subParams));
-                        $conn->send(json_encode([
-                            'method' => 'SUBSCRIBE',
-                            'params' => $subParams,
-                            'id' => 2
-                        ]));
-                    } else {
-                        $this->info("Không có coin nào trong danh mục theo dõi.");
-                    }
-                }
-            });
+                        $symbols = [];
+                        foreach ($merged as $s) {
+                            $pair = strtolower($s) . 'usdt';
+                            $symbols[$pair] = strtoupper($s);
+                        }
 
-            $conn->on('message', function($msg) {
-                $data = json_decode($msg, true);
-                if (isset($data['e']) && $data['e'] === '24hrTicker') {
-                    $pair = strtolower($data['s']);
-                    if (isset($this->currentSymbols[$pair])) {
-                        $symbol = $this->currentSymbols[$pair];
-                        $price = (float)$data['c'];
-                        $changePercent = (float)$data['P'];
+                        // SAFE GUARD: luôn có ít nhất 1 stream
+                        if (empty($symbols)) {
+                            $symbols = ['btcusdt' => 'BTC'];
+                        }
 
-                        // Throttling: Cập nhật cache luôn, nhưng chỉ Publish Event cho Subscription max 2 lần/giây.
-                        Redis::set("prices:{$symbol}", $price);
+                        $newPairs = array_keys($symbols);
+                        sort($newPairs);
 
-                        $now = microtime(true);
-                        if (!isset($this->lastPublished[$symbol]) || ($now - $this->lastPublished[$symbol]) > 0.5) {
-                            $this->lastPublished[$symbol] = $now;
-                            
-                            // Publish Event (Lighthouse / Broadcasting sẽ sử dụng)
-                            event(new PriceUpdated($symbol, $price, $changePercent));
-                            
-                            $this->line("Published UI update: {$symbol} - {$price}");
+                        $currentPairs = array_keys($this->currentSymbols);
+                        sort($currentPairs);
+
+                        if ($newPairs !== $currentPairs) {
+                            $this->info("Update stream...");
+
+                            // UNSUBSCRIBE cũ
+                            if (!empty($currentPairs)) {
+                                $params = array_map(fn($p) => $p . '@ticker', $currentPairs);
+                                $conn->send(json_encode([
+                                    'method' => 'UNSUBSCRIBE',
+                                    'params' => $params,
+                                    'id' => 1
+                                ]));
+
+                                // clear memory
+                                foreach ($this->currentSymbols as $sym) {
+                                    unset($this->lastPublished[$sym]);
+                                }
+                            }
+
+                            // SUBSCRIBE mới
+                            $params = array_map(fn($p) => $p . '@ticker', $newPairs);
+                            $this->info("Subscribe: " . implode(',', $params));
+
+                            $conn->send(json_encode([
+                                'method' => 'SUBSCRIBE',
+                                'params' => $params,
+                                'id' => 2
+                            ]));
+
+                            $this->currentSymbols = $symbols;
+                        }
+                    } catch (\Exception $e) {
+                        if ($this->output) {
+                            $this->error("Redis sync error: " . $e->getMessage());
                         }
                     }
-                }
-            });
-
-            $conn->on('close', function($code = null, $reason = null) use ($connector, $loop) {
-                $this->error("WebSocket đóng kết nối: ({$code}) {$reason}. Đang thử kết nối lại...");
-                $this->currentSymbols = []; // Reset để nó subscribe lại khi connect
-                $loop->addTimer(2.0, function() use ($connector, $loop) {
-                    $this->connectToBinance($connector, $loop);
                 });
-            });
 
-        }, function(\Exception $e) use ($connector, $loop) {
-            $this->error("Không thể kết nối WS: {$e->getMessage()}");
-            $loop->addTimer(2.0, function() use ($connector, $loop) {
-                $this->connectToBinance($connector, $loop);
-            });
-        });
+                // MESSAGE
+                $conn->on('message', function ($msg) use ($conn) {
+
+                    $this->lastMessageTime = microtime(true);
+
+                    $data = json_decode($msg, true);
+
+                    // SUBSCRIBE RESPONSE
+                    if (isset($data['result'])) {
+                        $this->info("Subscribe OK");
+                        return;
+                    }
+
+                    // ERROR
+                    if (isset($data['code'])) {
+                        $this->error("Binance error: " . json_encode($data));
+                        return;
+                    }
+
+                    // DATA
+                    if (isset($data['e']) && $data['e'] === '24hrTicker') {
+
+                        $pair = strtolower($data['s']);
+
+                        if (!isset($this->currentSymbols[$pair])) {
+                            return;
+                        }
+
+                        $symbol = $this->currentSymbols[$pair];
+                        $price = (float)$data['c'];
+                        $change = (float)$data['P'];
+
+                        // Redis: Dùng format mới thống nhất
+                        try {
+                            Redis::set("crypto:price:{$symbol}", $price);
+                            Redis::set("crypto:change:{$symbol}", $change);
+                        } catch (\Exception $e) {
+                            if ($this->output) {
+                                $this->error("Redis write error: " . $e->getMessage());
+                            }
+                        }
+
+                        // throttle event
+                        $now = microtime(true);
+                        if (
+                            !isset($this->lastPublished[$symbol]) ||
+                            ($now - $this->lastPublished[$symbol]) > 0.5
+                        ) {
+                            $this->lastPublished[$symbol] = $now;
+                            event(new PriceUpdated($symbol, $price, $change));
+                        }
+                    }
+                });
+
+                // CLOSE
+                $conn->on('close', function ($code = null, $reason = null) use ($connector, $loop, $watchdog) {
+
+                    $this->error("Closed: {$code} {$reason}");
+
+                    $loop->cancelTimer($watchdog);
+                    if ($this->syncTimer) {
+                        $loop->cancelTimer($this->syncTimer);
+                        $this->syncTimer = null;
+                    }
+
+                    $this->currentSymbols = [];
+
+                    $loop->addTimer(3, function () use ($connector, $loop) {
+                        $this->connect($connector, $loop);
+                    });
+                });
+            },
+
+            function (\Exception $e) use ($connector, $loop) {
+
+                $this->error("Connect error: " . $e->getMessage());
+
+                $loop->addTimer(3, function () use ($connector, $loop) {
+                    $this->connect($connector, $loop);
+                });
+            }
+        );
+    }
+
+    protected function getMarketBaselineSymbols()
+    {
+        return [
+            'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'SHIB', 'DOT',
+            'LINK', 'TRX', 'MATIC', 'LTC', 'NEAR', 'UNI', 'DAI', 'ATOM', 'XLM', 'OP',
+            'KAS', 'ARB', 'ICP', 'ETC', 'APT', 'BCH', 'FIL', 'LDO', 'HBAR', 'RNDR',
+            'VET', 'TIA', 'STX', 'IMX', 'CRO', 'GRT', 'INJ', 'MKR', 'SEI', 'THETA',
+            'ROSE', 'ALGO', 'EGLD', 'FLOW', 'SAND', 'MANA', 'AAVE', 'BSV', 'AXS', 'CHZ',
+            'SNX', 'NEO', 'GALA', 'EOS', 'QNT', 'KSM', 'KLAY', 'IOTA', 'MINA', 'CRV',
+            'CFX', 'DASH', 'RUNE', 'KAVA', 'GMX', 'DYDX', 'AGIX', 'OCEAN', 'FET', 'ENS',
+            'PENDLE', 'JUP', 'BEAM', 'PYTH', 'RON', 'MAVIA', 'PYR', 'BIGTIME', 'PORTAL', 'WIF',
+            'PEPE', 'BONK', 'FLOKI', 'ORDI', 'SATS', '1000SATS', 'STG', 'ZETA', 'DYM', 'MANTA',
+            'ALT', 'PIXEL', 'STRK', 'GLMR', 'ASTR', 'MOVR', 'METIS', 'ZIL', 'LRC', 'ENJ'
+        ];
     }
 }

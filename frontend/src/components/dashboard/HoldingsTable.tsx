@@ -34,15 +34,15 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
 
   // Tính P/L bằng useMemo — chỉ tính lại khi giá hoặc holdings thay đổi
   const pl = useMemo(
-    () => (livePrice - holding.avg_buy_price) * holding.amount,
-    [livePrice, holding.avg_buy_price, holding.amount]
+    () => (livePrice - holding.average_buy_price) * holding.amount,
+    [livePrice, holding.average_buy_price, holding.amount]
   );
 
   const plPercent = useMemo(
-    () => holding.avg_buy_price > 0
-      ? ((livePrice - holding.avg_buy_price) / holding.avg_buy_price) * 100
+    () => holding.average_buy_price > 0
+      ? ((livePrice - holding.average_buy_price) / holding.average_buy_price) * 100
       : 0,
-    [livePrice, holding.avg_buy_price]
+    [livePrice, holding.average_buy_price]
   );
 
   const totalValue = useMemo(
@@ -82,7 +82,7 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
 
       {/* Avg Price */}
       <td className="px-5 py-4 hidden md:table-cell text-[#d3c5ac] font-medium">
-        ${holding.avg_buy_price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        ${holding.average_buy_price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
       </td>
 
       {/* Live Price + P/L (animated) */}
@@ -179,7 +179,7 @@ const HoldingsTable: React.FC<HoldingsTableProps> = ({ portfolio, livePrices, on
               <HoldingRow
                 key={h.coin_symbol}
                 holding={h}
-                livePrice={livePrices[h.coin_symbol]?.price ?? h.avg_buy_price}
+                livePrice={livePrices[h.coin_symbol]?.price ?? h.average_buy_price}
                 change24h={livePrices[h.coin_symbol]?.change_24h ?? 0}
                 onRemove={onRemove}
               />

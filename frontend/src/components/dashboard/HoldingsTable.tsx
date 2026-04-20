@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { WalletAsset } from '@/lib/portfolioService';
 
 // Map symbol -> màu chủ đạo và icon
@@ -57,7 +58,7 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
     <tr className="hover:bg-[#272a2e]/40 transition-colors group">
       {/* Asset */}
       <td className="px-5 py-4">
-        <div className="flex items-center gap-3">
+        <Link href={`/coin/${holding.coin_symbol}`} className="flex items-center gap-3 group/link">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-inner"
             style={{ background: meta.color + '22', border: `1px solid ${meta.color}44` }}
@@ -65,10 +66,10 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
             <span className="material-symbols-outlined text-lg" style={{ color: meta.color }}>{meta.icon}</span>
           </div>
           <div>
-            <p className="font-bold text-[#e1e2e7] leading-none">{holding.coin_symbol}</p>
+            <p className="font-bold text-[#e1e2e7] leading-none group-hover/link:text-[#f0b90b] transition-colors">{holding.coin_symbol}</p>
             <p className="text-[10px] text-[#c1c7d1] mt-1">{meta.name || holding.coin_symbol}</p>
           </div>
-        </div>
+        </Link>
       </td>
 
       {/* Balance */}
@@ -87,17 +88,9 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
 
       {/* Live Price + P/L (animated) */}
       <td className="px-5 py-4">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={livePrice}
-            initial={{ color: livePrice > 0 ? plColor : '#e1e2e7', scale: 1.08 }}
-            animate={{ color: '#e1e2e7', scale: 1 }}
-            transition={{ duration: 0.7 }}
-            className="font-bold text-sm"
-          >
-            ${livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-          </motion.p>
-        </AnimatePresence>
+        <p className="font-bold text-sm text-[#e1e2e7] transition-colors duration-300">
+          ${livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+        </p>
 
         {/* 24h change */}
         <p className={`text-[10px] font-medium mt-0.5 ${change24h >= 0 ? 'text-[#59f8a9]' : 'text-[#ffb4ab]'}`}>
@@ -106,18 +99,14 @@ const HoldingRow: React.FC<HoldingRowProps> = ({ holding, livePrice, change24h, 
 
         {/* P/L */}
         <div className="flex items-center gap-1 mt-1">
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={pl}
-              initial={{ color: plColor, y: isProfit ? -3 : 3 }}
-              animate={{ color: plColor, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-[10px] font-bold"
-            >
-              P/L: {isProfit ? '+' : ''}${pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              {' '}({isProfit ? '+' : ''}{plPercent.toFixed(2)}%)
-            </motion.span>
-          </AnimatePresence>
+          <motion.span
+            animate={{ color: plColor }}
+            transition={{ duration: 0.4 }}
+            className="text-[10px] font-bold"
+          >
+            P/L: {isProfit ? '+' : ''}${pl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {' '}({isProfit ? '+' : ''}{plPercent.toFixed(2)}%)
+          </motion.span>
         </div>
       </td>
 

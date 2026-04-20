@@ -37,18 +37,14 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ portfolio, livePric
       <div className="md:col-span-2 p-6 rounded-xl bg-[#191c1f] border border-[#4f4633]/10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#ffd87f] to-[#f0b90b] opacity-5 blur-3xl rounded-full -mr-16 -mt-16" />
         <p className="text-[#d3c5ac] text-sm font-medium tracking-wide uppercase mb-2">Net Worth Portfolio</p>
-        <AnimatePresence mode="wait">
-          <motion.h1
-            key={totalValue}
-            initial={{ opacity: 0.6, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#e1e2e7] mb-2"
-          >
-            {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
-            <span className="text-[#f0b90b] text-2xl">USDT</span>
-          </motion.h1>
-        </AnimatePresence>
+        <motion.h1
+          animate={{ opacity: [0.7, 1] }}
+          transition={{ duration: 0.4 }}
+          className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#e1e2e7] mb-2"
+        >
+          {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+          <span className="text-[#f0b90b] text-2xl">USDT</span>
+        </motion.h1>
         <p className="text-[#c1c7d1] text-sm mb-1">
           Tổng đã đầu tư:{' '}
           <span className="font-semibold text-[#e1e2e7]">
@@ -62,17 +58,13 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ portfolio, livePric
         <div className="p-5 rounded-xl bg-[#191c1f] border border-[#4f4633]/10">
           <p className="text-[#d3c5ac] text-xs font-bold uppercase tracking-widest mb-1">Total PnL</p>
           <div className="flex items-end justify-between">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={totalPL}
-                initial={{ scale: 1.08, color: isProfit ? '#59f8a9' : '#ffb4ab' }}
-                animate={{ scale: 1, color: isProfit ? '#59f8a9' : '#ffb4ab' }}
-                transition={{ duration: 0.6 }}
-                className="text-2xl font-bold"
-              >
-                {isProfit ? '+' : ''}${totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </motion.span>
-            </AnimatePresence>
+            <motion.span
+              animate={{ color: isProfit ? '#59f8a9' : '#ffb4ab' }}
+              transition={{ duration: 0.4 }}
+              className="text-2xl font-bold"
+            >
+              {isProfit ? '+' : ''}${totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </motion.span>
             <span
               className="text-sm font-bold px-2 py-0.5 rounded"
               style={{

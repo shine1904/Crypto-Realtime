@@ -116,7 +116,9 @@ export const TokenService = {
         });
 
         if (!res.ok) {
-          throw new Error('Refresh failed');
+          const errText = await res.text();
+          console.error('[TokenService] Refresh failed with status:', res.status, errText);
+          throw new Error('Refresh failed: ' + errText);
         }
 
         const data = await res.json();

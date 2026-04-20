@@ -6,6 +6,10 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\PortfolioController;
+use App\Http\Controllers\Api\MarketController;
+use App\Http\Controllers\Api\PriceAlertController;
+use App\Http\Controllers\Api\CoinController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +39,11 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('news', [\App\Http\Controllers\Api\NewsController::class, 'index']);
 });
 
+// --- ROUTE CÔNG KHAI NGOÀI AUTH ---
+Route::get('/markets', [MarketController::class, 'index']); // GET /api/markets
+Route::get('/coins', [CoinController::class, 'index']);          // GET /api/coins
+Route::get('/coins/{symbol}', [CoinController::class, 'show']);  // GET /api/coins/BTC
+
 // --- NHÓM 2: CÁC ROUTE CẦN ĐĂNG NHẬP (PROTECTED) ---
 Route::middleware('auth:api')->group(function () {
     
@@ -45,6 +54,7 @@ Route::middleware('auth:api')->group(function () {
         // Đăng xuất (Phải login mới đăng xuất được để vô hiệu hóa Token)
         Route::post('logout', [AuthController::class, 'logout']);
     });
+    
 
     // Các Route liên quan đến dữ liệu nhạy cảm khác
     Route::get('/user', function (Request $request) {
@@ -53,5 +63,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/portfolio', [PortfolioController::class, 'index']);
     Route::post('/portfolio/add', [PortfolioController::class, 'store']);
     Route::delete('/portfolio/{symbol}', [PortfolioController::class, 'destroy']);
+    Route::get('/alerts', [PriceAlertController::class, 'index']);
+    Route::post('/alerts', [PriceAlertController::class, 'store']);
+    Route::delete('/alerts/{id}', [PriceAlertController::class, 'destroy']);
 
 });

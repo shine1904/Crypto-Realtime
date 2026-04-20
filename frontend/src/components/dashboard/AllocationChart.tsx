@@ -89,16 +89,9 @@ const AllocationChart: React.FC<AllocationChartProps> = ({ portfolio, livePrices
               </svg>
               <div className="absolute text-center">
                 <p className="text-[9px] font-bold text-[#d3c5ac]">TOTAL</p>
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={totalValue}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-xs font-black text-[#e1e2e7] leading-tight"
-                  >
-                    ${(totalValue / 1000).toFixed(1)}K
-                  </motion.p>
-                </AnimatePresence>
+                <p className="text-xs font-black text-[#e1e2e7] leading-tight transition-colors duration-300">
+                  ${(totalValue / 1000).toFixed(1)}K
+                </p>
               </div>
             </div>
 
@@ -126,39 +119,29 @@ const AllocationChart: React.FC<AllocationChartProps> = ({ portfolio, livePrices
           <h3 className="text-sm font-bold tracking-widest uppercase text-[#d3c5ac] mb-6">Portfolio P&L</h3>
           
           <p className="text-xs text-[#d3c5ac] mb-1">Tổng Giá Trị</p>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={totalValue}
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-3xl font-extrabold text-[#e1e2e7] mb-3 tracking-tight"
-            >
-              ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </motion.p>
-          </AnimatePresence>
+          <p className="text-3xl font-extrabold text-[#e1e2e7] mb-3 tracking-tight transition-colors duration-300">
+            ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
 
           <p className="text-xs text-[#d3c5ac] mb-1">Tổng P/L</p>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={totalPL}
-              initial={{ color: isProfit ? '#59f8a9' : '#ffb4ab', scale: 1.05 }}
-              animate={{ color: isProfit ? '#59f8a9' : '#ffb4ab', scale: 1 }}
-              className="flex items-baseline gap-2"
+          <motion.div
+            animate={{ color: isProfit ? '#59f8a9' : '#ffb4ab' }}
+            transition={{ duration: 0.4 }}
+            className="flex items-baseline gap-2"
+          >
+            <span className="text-2xl font-bold" style={{ color: isProfit ? '#59f8a9' : '#ffb4ab' }}>
+              {isProfit ? '+' : ''}${totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span
+              className="text-sm font-bold px-2 py-0.5 rounded"
+              style={{
+                background: isProfit ? 'rgba(89,248,169,0.1)' : 'rgba(255,180,171,0.1)',
+                color: isProfit ? '#59f8a9' : '#ffb4ab',
+              }}
             >
-              <span className="text-2xl font-bold" style={{ color: isProfit ? '#59f8a9' : '#ffb4ab' }}>
-                {isProfit ? '+' : ''}${totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span
-                className="text-sm font-bold px-2 py-0.5 rounded"
-                style={{
-                  background: isProfit ? 'rgba(89,248,169,0.1)' : 'rgba(255,180,171,0.1)',
-                  color: isProfit ? '#59f8a9' : '#ffb4ab',
-                }}
-              >
-                {isProfit ? '+' : ''}{totalPLPercent.toFixed(2)}%
-              </span>
-            </motion.div>
-          </AnimatePresence>
+              {isProfit ? '+' : ''}{totalPLPercent.toFixed(2)}%
+            </span>
+          </motion.div>
 
           <p className="text-xs text-[#d3c5ac] mt-4">Tổng Đã Đầu Tư</p>
           <p className="text-lg font-bold text-[#e1e2e7]">

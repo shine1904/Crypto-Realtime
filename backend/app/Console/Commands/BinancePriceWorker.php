@@ -22,6 +22,15 @@ class BinancePriceWorker extends Command
     {
         $this->info("Worker start...");
 
+        // Seed untriggered alerts into Redis
+        $this->info("Seeding untriggered alerts to Redis...");
+        $untriggeredAlerts = \App\Models\PriceAlert::where('is_triggered', false)->get();
+        foreach ($untriggeredAlerts as $alert) {
+            $symbol = strtoupper($alert->symbol);
+            Redis::zadd("alerts:{$alert->condition}:{$symbol}", $alert->target_price, $alert->id);
+        }
+        $this->info("Seeded {$untriggeredAlerts->count()} alerts.");
+
         $loop = Loop::get();
         $connector = new Connector($loop);
 

@@ -258,7 +258,7 @@ export default function CoinDetailPage({
   }, [upperSymbol]);
 
   // ── 5. Fetch user alerts ─────────────────────────────────────────────────
-  useEffect(() => {
+  const fetchUserAlerts = useCallback(() => {
     if (!isLoggedIn) { setAlertsLoading(false); return; }
     fetchWithAuth(`${BASE_URL}/alerts`)
       .then(r => r.json())
@@ -266,6 +266,23 @@ export default function CoinDetailPage({
       .catch(console.error)
       .finally(() => setAlertsLoading(false));
   }, [upperSymbol, isLoggedIn]);
+
+  useEffect(() => {
+    fetchUserAlerts();
+
+    // Listen to global alerts to update UI if this coin is affected
+    const handleAlertTriggered = (e: any) => {
+      const data = e.detail;
+      if (data.symbol === upperSymbol) {
+        fetchUserAlerts();
+      }
+    };
+
+    window.addEventListener('alertTriggered', handleAlertTriggered);
+    return () => {
+      window.removeEventListener('alertTriggered', handleAlertTriggered);
+    };
+  }, [fetchUserAlerts, upperSymbol]);
 
   // ── 6. Set Alert ─────────────────────────────────────────────────────────
   const handleSetAlert = useCallback(async (e: React.FormEvent) => {

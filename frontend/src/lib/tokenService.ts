@@ -60,20 +60,30 @@ export const TokenService = {
   },
 
   broadcast(event: AuthEvent) {
+    // Send to OTHER tabs via BroadcastChannel
     if (authChannel) {
       authChannel.postMessage(event);
+    }
+    // Also notify the CURRENT tab via a custom DOM event
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth_event', { detail: event }));
     }
   },
 
   onEvent(callback: (event: AuthEvent) => void) {
-    if (!authChannel) return () => {};
+    // Listen to BroadcastChannel (other tabs)
+    const bcHandler = (e: MessageEvent) => callback(e.data);
+    authChannel?.addEventListener('message', bcHandler);
     
-    // Listen to channel
-    const handler = (e: MessageEvent) => callback(e.data);
-    authChannel.addEventListener('message', handler);
+    // Listen to CustomEvent (same tab)
+    const localHandler = (e: Event) => callback((e as CustomEvent).detail);
+    window.addEventListener('auth_event', localHandler);
     
     // Return cleanup function
-    return () => authChannel?.removeEventListener('message', handler);
+    return () => {
+      authChannel?.removeEventListener('message', bcHandler);
+      window.removeEventListener('auth_event', localHandler);
+    };
   },
 
   shouldRefresh(): boolean {

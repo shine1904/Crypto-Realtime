@@ -34,6 +34,9 @@ class PriceAlertController extends Controller
         ]);
 
         $alert = Auth::user()->priceAlerts()->create($validated);
+        
+        $symbol = strtoupper($alert->symbol);
+        \Illuminate\Support\Facades\Redis::zadd("alerts:{$alert->condition}:{$symbol}", $alert->target_price, $alert->id);
 
         return response()->json([
             'message' => 'Cài đặt cảnh báo thành công!',
@@ -47,6 +50,11 @@ class PriceAlertController extends Controller
     public function destroy($id)
     {
         $alert = Auth::user()->priceAlerts()->findOrFail($id);
+        
+        $symbol = strtoupper($alert->symbol);
+        \Illuminate\Support\Facades\Redis::zrem("alerts:above:{$symbol}", $alert->id);
+        \Illuminate\Support\Facades\Redis::zrem("alerts:below:{$symbol}", $alert->id);
+        
         $alert->delete();
 
         return response()->json(['message' => 'Đã xóa cảnh báo.']);

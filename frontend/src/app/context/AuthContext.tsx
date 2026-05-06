@@ -68,12 +68,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // 2. Lifecycle & Events
   useEffect(() => {
+    // Optimistic UI update before fetch completes
+    const savedName = TokenService.getUserName();
+    if (savedName) {
+      setUser((prev: any) => prev || { name: savedName });
+    }
+
     // Initial fetch
     fetchUser();
 
     // Listen to token updates (same tab and other tabs via BroadcastChannel)
     const cleanup = TokenService.onEvent((event: AuthEvent) => {
       if (event.type === 'LOGIN' || event.type === 'REFRESH_SUCCESS') {
+        if (event.payload?.userName) {
+          setUser((prev: any) => ({ ...prev, name: event.payload.userName }));
+        }
         fetchUser(); // Re-fetch user data and reschedule timer
       } else if (event.type === 'LOGOUT') {
         setUser(null);

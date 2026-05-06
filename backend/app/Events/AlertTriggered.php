@@ -4,29 +4,29 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class AlertTriggered implements ShouldBroadcast
+class AlertTriggered implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public readonly int    $userId,
-        public readonly string $symbol,
-        public readonly float  $targetPrice,
-        public readonly string $condition,
-        public readonly float  $triggeredAtPrice,
-        public readonly int    $alertId,
+        public int    $userId,
+        public string $symbol,
+        public float  $targetPrice,
+        public string $condition,
+        public float  $triggeredAtPrice,
+        public int    $alertId,
     ) {}
 
     /**
      * Broadcast vào private channel của từng user để bảo mật.
      */
-    public function broadcastOn(): Channel
+    public function broadcastOn(): \Illuminate\Broadcasting\PrivateChannel
     {
-        return new Channel("user.{$this->userId}.alerts");
+        return new \Illuminate\Broadcasting\PrivateChannel("user.{$this->userId}.alerts");
     }
 
     public function broadcastAs(): string

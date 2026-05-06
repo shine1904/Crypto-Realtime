@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import { AuthProvider } from "@/app/context/AuthContext";
+import { Toaster } from "react-hot-toast";
+import GlobalAlertListener from "@/components/GlobalAlertListener";
 
 // Cấu hình Font Inter với hỗ trợ Tiếng Việt
 const inter = Inter({
@@ -36,6 +38,8 @@ export default function RootLayout({
           {/* ApolloWrapper cho GraphQL */}
           <ApolloWrapper>
             {children}
+            <Toaster position="top-right" />
+            <GlobalAlertListener />
           </ApolloWrapper>
         </AuthProvider>
       </body>
